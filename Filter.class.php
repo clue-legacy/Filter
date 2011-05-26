@@ -123,9 +123,29 @@ abstract class Filter implements Interface_Sql{
      */
     public static function negate(Filter $filter){
         if($filter instanceof Interface_Filter_Negate){
+            $filter = clone $filter;
             return $filter->toNegate();
         }
         return new Filter_Negate($filter);
+    }
+    
+    /**
+     * get simplified filter
+     * 
+     * @param Filter $filter
+     * @return Filter
+     */
+    public static function simplify(Filter $filter){
+        if($filter instanceof Interface_Filter_Simplify){
+            $filter = clone $filter;
+            $filter = $filter->toSimplify();
+            if($filter === true){
+                return self::success();
+            }else if($filter === false){
+                return self::fail();
+            }
+        }
+        return $filter;
     }
     
     /**
@@ -261,7 +281,7 @@ abstract class Filter_Multi extends Filter{
             $ret .= $filter->toSql($db);
         }
         if($first){
-            throw new Filter_Exception();
+            return '1';
         }
         $ret .= ')';
         return $ret;
@@ -273,10 +293,25 @@ abstract class Filter_Multi extends Filter{
  * 
  * @author mE
  */
-class Filter_Multi_And extends Filter_Multi{
+class Filter_Multi_And extends Filter_Multi implements Interface_Filter_Simplify{
     public function __construct($elements){
         parent::__construct($elements);
         $this->combine = 'AND';
+    }
+    
+    public function toSimplify(){
+        foreach($this->elements as $key=>$element){
+            $s = self::simplify($element);
+            if($s instanceof Filter_Success){ // element always succeeds => ignore
+                unset($this->elements[$key]);
+            }else if($s instanceof Filter_Fail){ // element always fails => result always fails
+                return $s;
+            }
+        }
+        if(!$this->elements){ // no more elements => always succeed
+            return true;
+        }
+        return $this;
     }
 }
 
@@ -285,10 +320,25 @@ class Filter_Multi_And extends Filter_Multi{
  * 
  * @author mE
  */
-class Filter_Multi_Or extends Filter_Multi{
+class Filter_Multi_Or extends Filter_Multi implements Interface_Filter_Simplify{
     public function __construct($elements){
         parent::__construct($elements);
         $this->combine = 'OR';
+    }
+    
+    public function toSimplify(){
+        foreach($this->elements as $key=>$element){
+            $s = self::simplify($element);
+            if($s instanceof Filter_Success){ // element always succeeds => result always succeeds
+                return $s;
+            }else if($s instanceof Filter_Fail){ // element always fails => ignore
+                unset($this->elements[$key]);
+            }
+        }
+        if(!$this->elements){ // no more elements => always succeed
+            return true;
+        }
+        return $this;
     }
 }
 
@@ -377,7 +427,7 @@ class Filter_Search extends Filter{
  * 
  * @author mE
  */
-class Filter_Array extends Filter implements Interface_Filter_Negate{
+class Filter_Array extends Filter implements Interface_Filter_Negate, Interface_Filter_Simplify{
     /**
      * field to search in
      * 
@@ -413,6 +463,13 @@ class Filter_Array extends Filter implements Interface_Filter_Negate{
     
     public function toNegate(){
         $this->negate = !$this->negate;
+        return $this;
+    }
+    
+    public function toSimplify(){
+        if(!$this->array){ // empty array to compare to
+            return $this->negate; // normal = always fail, negated = always succeed
+        }
         return $this;
     }
     
@@ -599,6 +656,18 @@ interface Interface_Filter_Negate{
      * @see Filter::negate()
      */
     public function toNegate();
+}
+
+interface Interface_Filter_Simplify{
+    /**
+     * (try to) simplify this filter condition
+     * 
+     * should not be called manually
+     * 
+     * @return Filter|boolean negated filter (CAN be modified $this, but does NOT have to!) or boolean shortcut for success/fail
+     * @see Filter::simplify()
+     */
+    public function toSimplify();
 }
 
 /**
