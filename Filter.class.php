@@ -176,6 +176,30 @@ abstract class Filter implements Interface_Sql{
     public function __toString(){
         return $this->toSql(Db::singleton());
     }
+    
+    protected function escapeDbName($name,$db){
+        return $db->escape($name,Db::ESCAPE_NAME);
+        
+        return '`'.$name.'`';
+    }
+    
+    protected function escapeDbValue($value,$db){
+        if($value instanceof Interface_Sql){
+            $value = $value->toSql($db);
+        }
+        return $db->escape($value);
+        
+        if(is_int($value) || is_float($value)){
+            return $value;
+        }
+        if($value === true || $value === false){
+            return (int)$value;
+        }
+        if($value === NULL){
+            return 'NULL';
+        }
+        return Db::singleton()->quote($value);
+    }
 }
 
 /**
@@ -304,7 +328,7 @@ class Filter_Null extends Filter implements Interface_Filter_Negate{
     }
     
     public function toSql($db){
-        return $db->escape($this->name,Db::ESCAPE_NAME) . ($this->negate ? ' IS NOT NULL' : ' IS NULL');
+        return $this->escapeDbName($this->name,$db) . ($this->negate ? ' IS NOT NULL' : ' IS NULL');
     }
 }
 
@@ -340,7 +364,11 @@ class Filter_Search extends Filter{
     }
     
     public function toSql($db){
-        return $db->escape($this->name,Db::ESCAPE_NAME) . $db->escape($this->search,Db::ESCAPE_ENCLOSE|Db::ESCAPE_SEARCH);
+        return $this->escapeDbName($this->name,$db) . ' LIKE ' . $this->escapeDbSearch($this->search,$db);
+    }
+    
+    protected function escapeDbSearch($search,$db){
+        return $db->escape($this->search,Db::ESCAPE_ENCLOSE|Db::ESCAPE_SEARCH);
     }
 }
 
@@ -389,7 +417,7 @@ class Filter_Array extends Filter implements Interface_Filter_Negate{
     }
     
     public function toSql($db){
-        $ret = $db->escape($this->name,Db::ESCAPE_NAME);
+        $ret = $this->escapeDbName($this->name,$db);
         if($this->negate){
             $ret .= ' NOT';
         }
@@ -401,11 +429,7 @@ class Filter_Array extends Filter implements Interface_Filter_Negate{
             }else{
                 $ret .= ',';
             }
-            if($value instanceof Interface_Sql){
-                $ret .= $value->toSql($db);
-            }else{
-                $ret .= $db->escape($value);
-            }
+            $ret .= $this->escapeDbValue($value,$db);
         }
         if($first){ // empty array given, no need to actually filter
             return $this->negate ? '1' : '0'; // searching in empty array will always fail
@@ -448,13 +472,7 @@ class Filter_Named extends Filter implements Interface_Filter_Negate{
     }
     
     public function toSql($db){
-        $ret = $db->escape($this->name,Db::ESCAPE_NAME) . $this->comparator;
-        if($this->value instanceof Interface_Sql){
-            $ret .= $this->value->toSql($db);
-        }else{
-            $ret .= $db->escape($this->value);
-        }
-        return $ret;
+        return $this->dbEscapeName($this->name,$db) . $this->comparator . $this->escapeDbValue($this->value,$db);
     }
 }
 
@@ -524,7 +542,14 @@ class Filter_Begins extends Filter{
         parent::__construct();
     }
     public function toSql($db){
-        return $db->escape($this->name,Db::ESCAPE_NAME).' LIKE '.$db->escape($this->begin,Db::ESCAPE_RIGHT|Db::ESCAPE_ENCLOSE);
+        return $this->escapeDbName($this->name,$db).' LIKE '.$this->escapeDbLike($this->begin,$db);
+    }
+    
+    protected function escapeDbLike($begin,$db){
+        if(is_string($begin)){
+            $begin = str_replace(array('%','_'),array('\\%','\\_'),$begin);
+        }
+        return $this->escapeDbValue($begin.'%',$db);
     }
 }
 
