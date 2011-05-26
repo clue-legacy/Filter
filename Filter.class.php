@@ -119,10 +119,10 @@ abstract class Filter implements Interface_Sql{
      * 
      * @param Filter $filter
      * @return Filter
-     * @uses Interface_Filter_Negate::toNegate() where applicable
+     * @uses Filter_Interface_Negate::toNegate() where applicable
      */
     public static function negate(Filter $filter){
-        if($filter instanceof Interface_Filter_Negate){
+        if($filter instanceof Filter_Interface_Negate){
             $filter = clone $filter;
             return $filter->toNegate();
         }
@@ -136,7 +136,7 @@ abstract class Filter implements Interface_Sql{
      * @return Filter
      */
     public static function simplify(Filter $filter){
-        if($filter instanceof Interface_Filter_Simplify){
+        if($filter instanceof Filter_Interface_Simplify){
             $filter = clone $filter;
             $filter = $filter->toSimplify();
             if($filter === true){
@@ -293,7 +293,7 @@ abstract class Filter_Multi extends Filter{
  * 
  * @author mE
  */
-class Filter_Multi_And extends Filter_Multi implements Interface_Filter_Simplify{
+class Filter_Multi_And extends Filter_Multi implements Filter_Interface_Simplify{
     public function __construct($elements){
         parent::__construct($elements);
         $this->combine = 'AND';
@@ -320,7 +320,7 @@ class Filter_Multi_And extends Filter_Multi implements Interface_Filter_Simplify
  * 
  * @author mE
  */
-class Filter_Multi_Or extends Filter_Multi implements Interface_Filter_Simplify{
+class Filter_Multi_Or extends Filter_Multi implements Filter_Interface_Simplify{
     public function __construct($elements){
         parent::__construct($elements);
         $this->combine = 'OR';
@@ -347,7 +347,7 @@ class Filter_Multi_Or extends Filter_Multi implements Interface_Filter_Simplify{
  * 
  * @author mE
  */
-class Filter_Null extends Filter implements Interface_Filter_Negate{
+class Filter_Null extends Filter implements Filter_Interface_Negate{
     /**
      * field to search in
      * 
@@ -427,7 +427,7 @@ class Filter_Search extends Filter{
  * 
  * @author mE
  */
-class Filter_Array extends Filter implements Interface_Filter_Negate, Interface_Filter_Simplify{
+class Filter_Array extends Filter implements Filter_Interface_Negate, Filter_Interface_Simplify{
     /**
      * field to search in
      * 
@@ -496,7 +496,7 @@ class Filter_Array extends Filter implements Interface_Filter_Negate, Interface_
     }
 }
 
-class Filter_Named extends Filter implements Interface_Filter_Negate{
+class Filter_Named extends Filter implements Filter_Interface_Negate{
     protected $name;
     protected $value;
     protected $comparator;
@@ -615,7 +615,7 @@ class Filter_Begins extends Filter{
  * 
  * @author mE
  */
-class Filter_Negate extends Filter implements Interface_Filter_Negate{
+class Filter_Negate extends Filter implements Filter_Interface_Negate{
     /**
      * filter to be negated
      * 
@@ -646,7 +646,7 @@ class Filter_Negate extends Filter implements Interface_Filter_Negate{
     }
 }
 
-interface Interface_Filter_Negate{
+interface Filter_Interface_Negate{
     /**
      * negate this filter condition
      * 
@@ -658,7 +658,7 @@ interface Interface_Filter_Negate{
     public function toNegate();
 }
 
-interface Interface_Filter_Simplify{
+interface Filter_Interface_Simplify{
     /**
      * (try to) simplify this filter condition
      * 
