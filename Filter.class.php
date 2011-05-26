@@ -128,6 +128,35 @@ abstract class Filter implements Interface_Sql{
         return new Filter_Negate($filter);
     }
     
+    /**
+     * return a filter which always filters everything
+     * 
+     * @return Filter_Fail
+     */
+    public static function fail(){
+        return new Filter_Fail();
+    }
+    
+    /**
+     * return a filter which never filters anything
+     * 
+     * @return Filter_Success
+     */
+    public static function success(){
+        return new Filter_Success();
+    }
+    
+    /**
+     * make sure key with name starts with value
+     * 
+     * @param string $name
+     * @param string $value
+     * @return Filter_Begins
+     */
+    public static function begins($name,$value){
+        return new Filter_Begins($name,$value); 
+    }
+    
     ////////////////////////////////////////////////////////////////////////////
     
     /**
@@ -473,6 +502,29 @@ class Filter_Operation extends Filter_Expression{
     
     public function toSql($db){
         return $this->operand1->toSql($db) . ' ' . $this->operation . ' ' . $this->operand2->toSql($db);
+    }
+}
+
+class Filter_Success extends Filter{
+    public function toSql($db){
+        return '1';
+    }
+}
+
+class Filter_Fail extends Filter{
+    public function toSql($db){
+        return '0';
+    }
+}
+
+class Filter_Begins extends Filter{
+    public function __construct($name,$begin){
+        $this->name = $name;
+        $this->begin = $begin;
+        parent::__construct();
+    }
+    public function toSql($db){
+        return $db->escape($this->name,Db::ESCAPE_NAME).' LIKE '.$db->escape($this->begin,Db::ESCAPE_RIGHT|Db::ESCAPE_ENCLOSE);
     }
 }
 
