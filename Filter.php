@@ -227,4 +227,18 @@ abstract class Filter{
         }
         return $ret;
     }
+    
+    /**
+     * get filtered SPL iterator for given data/iterator
+     * 
+     * @param Iterator|Traversable|array $data complete input data
+     * @return Iterator iterator with only filtered values left
+     * @uses Filter_Adapter_Iterator
+     */
+    public function toIterator($data){
+        if(!($data instanceof Iterator)){
+            $data = new IteratorIterator($data);
+        }
+        return new Filter_Adapter_Iterator($data,$this);
+    }
 }
