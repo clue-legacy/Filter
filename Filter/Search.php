@@ -5,7 +5,7 @@
  * 
  * @author mE
  */
-class Filter_Search extends Filter{
+class Filter_Search extends Filter implements Filter_Interface_Sql{
     /**
      * field to search in
      * 

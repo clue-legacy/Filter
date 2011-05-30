@@ -5,7 +5,7 @@
  * 
  * @author mE
  */
-abstract class Filter_Multi extends Filter{
+abstract class Filter_Multi extends Filter implements Filter_Interface_Sql{
     /**
      * method used to combine the filter elements
      * 

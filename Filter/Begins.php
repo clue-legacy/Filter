@@ -1,6 +1,6 @@
 <?php
 
-class Filter_Begins extends Filter{
+class Filter_Begins extends Filter implements Filter_Interface_Sql{
     public function __construct($name,$begin){
         $this->name = $name;
         $this->begin = $begin;

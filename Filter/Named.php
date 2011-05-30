@@ -1,6 +1,6 @@
 <?php
 
-class Filter_Named extends Filter implements Filter_Interface_Negate{
+class Filter_Named extends Filter implements Filter_Interface_Negate, Filter_Interface_Sql{
     protected $name;
     protected $value;
     protected $comparator;

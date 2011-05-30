@@ -5,7 +5,7 @@
  * 
  * @author mE
  */
-class Filter_Null extends Filter implements Filter_Interface_Negate{
+class Filter_Null extends Filter implements Filter_Interface_Negate, Filter_Interface_Sql{
     /**
      * field to search in
      * 

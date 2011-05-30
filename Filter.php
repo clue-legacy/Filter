@@ -5,7 +5,7 @@
  * 
  * @author mE
  */
-abstract class Filter implements Interface_Sql{
+abstract class Filter{
     /**
      * create new filter checking for equality
      * 
@@ -182,19 +182,14 @@ abstract class Filter implements Interface_Sql{
     /**
      * convert filter to sql where clause
      * 
-     * @param Db $db
-     * @return string
-     */
-    //abstract public function toSql($db);
-    
-    /**
-     * convert filter to sql where clause
-     * 
      * @return string
      * @uses Filter::toSql()
      */
     public function __toString(){
-        return $this->toSql(Db::singleton());
+        if($this instanceof Filter_Interface_Sql){
+            return $this->toSql(Db::singleton());
+        }
+        throw new Filter_Exception('Unable to convert to string');
     }
     
     protected function escapeDbName($name,$db){
@@ -204,8 +199,8 @@ abstract class Filter implements Interface_Sql{
     }
     
     protected function escapeDbValue($value,$db){
-        if($value instanceof Interface_Sql){
-            $value = $value->toSql($db);
+        if($value instanceof Filter_Interface_Sql){
+            return $value->toSql($db);
         }
         return $db->escape($value);
         

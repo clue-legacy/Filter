@@ -5,7 +5,7 @@
  * 
  * @author mE
  */
-class Filter_Negate extends Filter implements Filter_Interface_Negate{
+class Filter_Negate extends Filter implements Filter_Interface_Negate, Filter_Interface_Sql{
     /**
      * filter to be negated
      * 

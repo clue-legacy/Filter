@@ -5,7 +5,7 @@
  * 
  * @author mE
  */
-class Filter_Array extends Filter implements Filter_Interface_Negate, Filter_Interface_Simplify{
+class Filter_Array extends Filter implements Filter_Interface_Negate, Filter_Interface_Simplify, Filter_Interface_Sql{
     /**
      * field to search in
      * 
