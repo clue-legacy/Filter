@@ -33,6 +33,6 @@ class Filter_Named extends Filter implements Filter_Interface_Negate{
     }
     
     public function toSql($db){
-        return $this->dbEscapeName($this->name,$db) . $this->comparator . $this->escapeDbValue($this->value,$db);
+        return $this->escapeDbName($this->name,$db) . $this->comparator . $this->escapeDbValue($this->value,$db);
     }
 }
