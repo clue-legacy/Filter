@@ -38,4 +38,8 @@ class Filter_Null extends Filter implements Filter_Interface_Negate, Filter_Inte
     public function toSql($db){
         return $this->escapeDbName($this->name,$db) . ($this->negate ? ' IS NOT NULL' : ' IS NULL');
     }
+    
+    public function matches($row){
+        return (isset($this->name[$row]) === $this->negate);
+    }
 }

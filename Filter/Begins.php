@@ -16,4 +16,11 @@ class Filter_Begins extends Filter implements Filter_Interface_Sql{
         }
         return $this->escapeDbValue($begin.'%',$db);
     }
+    
+    public function matches($row){
+        if(!array_key_exists($this->name,$row)){
+            throw new Filter_Exception('Invalid key');
+        }
+        return (substr($row[$this->name],0,strlen($this->begin)) === $this->begin);
+    }
 }

@@ -34,4 +34,8 @@ class Filter_Negate extends Filter implements Filter_Interface_Negate, Filter_In
     public function toSql($db){
         return 'NOT('.$this->filter->toSql($db).')';
     }
+    
+    public function matches($row){
+        return !$this->filter->matches($row);
+    }
 }

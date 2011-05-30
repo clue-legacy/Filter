@@ -72,4 +72,11 @@ class Filter_Array extends Filter implements Filter_Interface_Negate, Filter_Int
         $ret .= ')';
         return $ret;
     }
+    
+    public function matches($row){
+        if(!array_key_exists($this->name,$row)){
+            throw new Filter_Exception('Invalid key');
+        }
+        return (in_array($row[$this->name],$this->array,true) !== $this->negate);
+    }
 }

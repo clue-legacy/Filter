@@ -215,4 +215,16 @@ abstract class Filter{
         }
         return Db::singleton()->quote($value);
     }
+    
+    abstract public function matches($row);
+    
+    public function apply($data){
+        $ret = array();
+        foreach($data as $key=>$row){
+            if($this->matches($row,$key)){
+                $ret[$key] = $row;
+            }
+        }
+        return $ret;
+    }
 }

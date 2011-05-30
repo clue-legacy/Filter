@@ -8,4 +8,8 @@ class Filter_Success extends Filter implements Filter_Interface_Negate, Filter_I
     public function toNegate(){
         return Filter::fail();
     }
+    
+    public function matches($row){
+        return true;
+    }
 }

@@ -25,4 +25,13 @@ class Filter_Multi_And extends Filter_Multi implements Filter_Interface_Simplify
         }
         return $this;
     }
+    
+    public function matches($row){
+        foreach($this->elements as $element){
+            if(!$element->matches($row)){
+                return false;
+            }
+        }
+        return true;
+    }
 }

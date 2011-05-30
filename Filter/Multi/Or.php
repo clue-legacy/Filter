@@ -25,4 +25,16 @@ class Filter_Multi_Or extends Filter_Multi implements Filter_Interface_Simplify{
         }
         return $this;
     }
+    
+    public function matches($row){
+        if(!$this->elements){
+            return true;
+        }
+        foreach($this->elements as $element){
+            if($element->matches($row)){
+                return true;
+            }
+        }
+        return false;
+    }
 }
