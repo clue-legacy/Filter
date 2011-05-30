@@ -216,12 +216,25 @@ abstract class Filter{
         return Db::singleton()->quote($value);
     }
     
+    /**
+     * check whether this filter matches the given value
+     * 
+     * @param mixed $row
+     * @return boolean
+     */
     abstract public function matches($row);
     
+    /**
+     * apply filter to given data/collection/iterator
+     * 
+     * @param array $data complete input data
+     * @return array filtered result
+     * @uses Filter::matches()
+     */
     public function apply($data){
         $ret = array();
         foreach($data as $key=>$row){
-            if($this->matches($row,$key)){
+            if($this->matches($row)){
                 $ret[$key] = $row;
             }
         }

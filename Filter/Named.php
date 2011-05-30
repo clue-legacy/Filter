@@ -35,4 +35,8 @@ class Filter_Named extends Filter implements Filter_Interface_Negate, Filter_Int
     public function toSql($db){
         return $this->escapeDbName($this->name,$db) . $this->comparator . $this->escapeDbValue($this->value,$db);
     }
+    
+    public function matches($row){
+        throw new Filter_Exception();
+    }
 }
