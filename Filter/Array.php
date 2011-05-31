@@ -7,13 +7,6 @@
  */
 class Filter_Array extends Filter implements Filter_Interface_Negate, Filter_Interface_Simplify, Filter_Interface_Sql{
     /**
-     * field to search in
-     * 
-     * @var string
-     */
-    protected $name;
-    
-    /**
      * array of values to search for
      * 
      * @var string
@@ -30,11 +23,9 @@ class Filter_Array extends Filter implements Filter_Interface_Negate, Filter_Int
     /**
      * instanciate new array filter
      * 
-     * @param string $name  field to search in
      * @param array  $array values to search for
      */
-    public function __construct($name,$array){
-        $this->name   = $name;
+    public function __construct($array){
         $this->array  = $array;
         $this->negate = false;
     }
@@ -52,11 +43,7 @@ class Filter_Array extends Filter implements Filter_Interface_Negate, Filter_Int
     }
     
     public function toSql($db){
-        $ret = $this->escapeDbName($this->name,$db);
-        if($this->negate){
-            $ret .= ' NOT';
-        }
-        $ret .= ' IN (';
+        $ret = ($this->negate ? 'NOT IN (' : 'IN (');
         $first = true;
         foreach($this->array as $value){
             if($first){
@@ -73,10 +60,7 @@ class Filter_Array extends Filter implements Filter_Interface_Negate, Filter_Int
         return $ret;
     }
     
-    public function matches($row){
-        if(!array_key_exists($this->name,$row)){
-            throw new Filter_Exception('Invalid key');
-        }
-        return (in_array($row[$this->name],$this->array,true) !== $this->negate);
+    public function matches($data){
+        return (in_array($data,$this->array,true) !== $this->negate);
     }
 }

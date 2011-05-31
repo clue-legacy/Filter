@@ -6,69 +6,78 @@
  * @author mE
  */
 abstract class Filter{
+    public static function key($name,$filter){
+        return new Filter_Keyed(name,$filter);
+    }
+    
+    public static function __callStatic($function,$args){
+        if($args && substr($function,0,3) === 'key'){
+            $function = substr($function,3);
+            if(is_callable(array('Filter',$function))){
+                $name = array_shift($args);
+                $filter = call_user_func_array(array('Filter',$function),$args);
+                return new Filter_Keyed($name,$filter);
+            }
+        }
+        throw new Filter_Exception('Invalid bla');
+    }
     /**
      * create new filter checking for equality
      * 
-     * @param string    $name  field name
      * @param mixed,... $value single value to match field or match either of multiple values (array of multiple arguments)
      * @return Filter_Named|Filter_Array|Filter_Null depending on value(s) given
      */
-    public static function eq($name,$value){
-        if(func_num_args() > 2){
+    public static function eq($value){
+        if(func_num_args() > 1){
             $value = func_get_args();
-            unset($value[0]);
-        }
-        if($value === NULL){
-            return new Filter_Null($name);
-        }
-        if(is_array($value)){
             return new Filter_Array($name,$value);
         }
-        return new Filter_Named($name,$value,'=');
+        if($value === NULL){
+            return new Filter_Null();
+        }
+        return new Filter_Eq($value);
     }
     
     /**
      * create new filter checking for UNequality (NOT equal)
      * 
-     * @param string $name
      * @param mixed,... $value
      * @return Filter
      * @uses Filter::eq()
      * @uses Filter::negate()
      */
-    public static function neq($name,$value){
-        if(func_num_args() > 2){
-            $value = func_get_args();
-            unset($value[0]);
+    public static function neq($value){
+        if(func_num_args() === 1){
+            return self::negate(self::eq($value));
         }
-        return self::negate(self::eq($name,$value));
+        $value = func_get_args();
+        return self::negate(call_user_func_array(array('Filter','eq'),$value));
     }
     
     /**
-     * create new filter searching given name for value
+     * create new filter using wildcard search for given value
      * 
-     * @param string $name  field to search in
      * @param string $value value to search for (may include widcards such as '*' and '?')
      * @return Filter_search
      */
-    public static function search($name,$value){
-        return new Filter_Search($name,$value);
+    public static function search($value){
+        return new Filter_Search($value);
     }
     
-    public static function gt($name,$value){
-        return new Filter_Named($name,$value,'>');
+    public static function gt($value){
+        return new Filter_Gt($value);
     }
     
-    public static function ge($name,$value){
-        return new Filter_Named($name,$value,'>=');
+    public static function ge($value){
+        return new Filter_Ge($value);
     }
     
-    public static function lt($name,$vaue){
-        return new Filter_Named($name,$value,'<');
+    public static function lt($value){
+        return new Filter_Lt($value);
     }
     
-    public static function le($name,$vaue){
-        return new Filter_Named($name,$value,'<=');
+    public static function le($value){
+        return new Filter_Le($value);
     }
     
     /**
@@ -187,9 +196,15 @@ abstract class Filter{
      */
     public function __toString(){
         if($this instanceof Filter_Interface_Sql){
-            return $this->toSql(Db::singleton());
+            try{
+                return $this->toSql(Db::singleton());
+            }
+            catch(Exception $e){
+                var_dump($e);
+            }
         }
-        throw new Filter_Exception('Unable to convert to string');
+        return var_export($this,true);
+        //throw new Filter_Exception('Unable to convert to string');
     }
     
     protected function escapeDbName($name,$db){
@@ -247,6 +262,7 @@ abstract class Filter{
      * @param Iterator|Traversable|array $data complete input data
      * @return Iterator iterator with only filtered values left
      * @uses Filter_Adapter_Iterator
+     * @link http://www.php.net/manual/en/class.filteriterator.php
      */
     public function toIterator($data){
         if(!($data instanceof Iterator)){
