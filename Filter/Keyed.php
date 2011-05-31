@@ -1,6 +1,6 @@
 <?php
 
-class Filter_Keyed extends Filter implements Filter_Interface_Negate{
+class Filter_Keyed extends Filter implements Filter_Interface_Negate, Filter_Interface_Sql, Filter_Interface_Simplify{
     /**
      * array key name
      * 
@@ -22,6 +22,14 @@ class Filter_Keyed extends Filter implements Filter_Interface_Negate{
     
     public function toNegate(){
         $this->filter = Filter::negate($this->filter);
+        return $this;
+    }
+    
+    public function toSimplify(){
+        $this->filter = Filter::simplify($this->filter);
+        if($this->filter instanceof Filter_Success || $this->filter instanceof Filter_Fail){
+            return $this->filter;
+        }
         return $this;
     }
     
