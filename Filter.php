@@ -81,6 +81,60 @@ abstract class Filter{
     }
     
     /**
+     * compare to given number (may include a comparator)
+     * 
+     * possible formats include "0" (equals 0), ">=1", ">2", "<3", "<=4",
+     * "!5" (not 5), "6+" (same as ">=6") and "7-" (same as "<=7")
+     * 
+     * @param string $value value to compare to
+     * @return Filter
+     * @throws Filter_Exception if comparator or value is invalid
+     */
+    public static function compareNumber($value){
+        $v = $value;
+        $c = '=';
+        $t = substr($value,0,2);
+        if($t === '<=' || $t === '>='){                                         // two character comparator
+            $c = $t;
+            $v = substr($value,2);
+        }else{
+            $t = substr($t,0,1);
+            if($t === '!' || $t === '<' || $t === '>'){                         // single character comparator
+                $c = $t;
+                $v = substr($value,1);
+            }else{
+                $t = substr($value,-1);
+                if($t === '+' || $t === ' '){                                   // ends with '+' (non-urlencoded '+' results in a space)
+                    $c = '>=';
+                    $v = substr($value,0,-1);
+                }else if($t === '-'){                                           // ends with '-'
+                    $c = '<=';
+                    $v = substr($value,0,-1);
+                }
+            }
+        }
+        if(!preg_match('/^\d+(?:\.\d+)?$/',$v)){
+            throw new Filter_Exception('Has to be a valid number');
+        }
+        $v = (float)$v;
+        
+        if($c === '='){
+            return new Filter_Eq($v);
+        }else if($c === '!'){
+            return self::negate(new Filter_Eq($v));
+        }else if($c === '<='){
+            return new Filter_Le($v);
+        }else if($c === '<'){
+            return new Filter_Lt($v);
+        }else if($c === '>='){
+            return new Filter_Ge($v);
+        }else if($c === '>'){
+            return new Filter_Gt($v);
+        }
+        throw new Filter_Exception('Invalid comparator');
+    }
+    
+    /**
      * make sure any (some / at least one / logical OR) filter of the given filters match
      * 
      * may be called as either any(Filter,Filter) or any(array(Filter,Filter))
